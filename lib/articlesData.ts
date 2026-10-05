@@ -1,21 +1,14 @@
-export interface NotebookCell {
-  type: 'markdown' | 'code';
-  source: string;
-  output?: string;
-  executionCount?: number;
-}
-
 export interface Article {
   id: string;
   title: string;
   date: string;
-  format: 'ipynb' | 'pdf' | 'docx' | 'md';
+  format: 'pdf' | 'docx' | 'md';
   category: string;
   readTime: string;
   excerpt: string;
   tags: string[];
+  pdfUrl?: string;
   pdfPages?: string[];
-  notebookCells?: NotebookCell[];
   content: string;
 }
 
@@ -24,328 +17,357 @@ export const ARTICLES_DATA: Article[] = [
     id: 'ml-data-first-class-citizen',
     title: 'ML Data Is A First Class Citizen in Production',
     date: 'Sep 29, 2021',
-    format: 'ipynb',
+    format: 'md',
     category: 'MLOps & Systems',
-    readTime: '18 cells · 8 min read',
+    readTime: '8 min read',
     tags: ['MLOps', 'Data Drift', 'Production ML', 'Concept Drift', 'TFX'],
     excerpt: 'Why ML code in production is just a drop in the ocean compared to dynamic data pipelines, schema skew, and covariate drift.',
-    notebookCells: [
-      {
-        type: 'markdown',
-        source: `# ML Data Is A First Class Citizen\n\nIn classical academia, machine learning revolves around static, curated benchmark datasets. You optimize hyper-parameters, measure benchmark accuracy, and consider the project done.\n\nIn real-world production systems (MLOps), **machine learning code is just a tiny drop in the ocean**. The surrounding systems—data verification, feature stores, schema validation, and continuous monitoring—dictate system survival.`
-      },
-      {
-        type: 'code',
-        executionCount: 1,
-        source: `import numpy as np
-import pandas as pd
-from scipy import stats
-
-def compute_covariate_shift(train_features, serve_features):
-    """
-    Computes two-sample Kolmogorov-Smirnov statistic
-    to detect covariate distribution shift between training and serving data.
-    """
-    ks_stat, p_val = stats.ks_2samp(train_features, serve_features)
-    drift_detected = p_val < 0.05
-    return {
-        "ks_statistic": round(float(ks_stat), 4),
-        "p_value": round(float(p_val), 5),
-        "drift_flag": drift_detected
-    }
-
-# Simulating training feature distribution vs incoming serving distribution
-np.random.seed(42)
-train_dist = np.random.normal(loc=0.0, scale=1.0, size=5000)
-serve_dist = np.random.normal(loc=0.35, scale=1.2, size=5000)
-
-result = compute_covariate_shift(train_dist, serve_dist)
-print("Distribution Shift Analysis Report:")
-print(f"KS Statistic : {result['ks_statistic']}")
-print(f"P-Value      : {result['p_value']}")
-print(f"Drift Alert  : {'CRITICAL: RETRAINING REQUIRED' if result['drift_flag'] else 'STABLE'}")`,
-        output: `Distribution Shift Analysis Report:
-KS Statistic : 0.1482
-P-Value      : 0.00000
-Drift Alert  : CRITICAL: RETRAINING REQUIRED`
-      },
-      {
-        type: 'markdown',
-        source: `### Mathematical Formulations of Production Shift\n\n#### 1. Concept Drift\nChanges in the relationship between input features $x$ and target labels $y$:\n$$P_{train}(y \\mid x) \\neq P_{serve}(y \\mid x)$$\n\n#### 2. Covariate Shift\nChanges in the marginal distribution of input variables:\n$$P_{train}(x) \\neq P_{serve}(x) \\quad \\text{while} \\quad P(y \\mid x) \\text{ remains constant}$$\n\n#### 3. Schema Skew\nArrival of unexpected types, null percentages, or unmapped categorical levels at the serving layer.`
-      },
-      {
-        type: 'code',
-        executionCount: 2,
-        source: `def generate_production_mlops_checklist():
-    steps = [
-        ("01_SCOPING", "Define measurable business goals and set baseline human-level performance (HLP)"),
-        ("02_DATA_CONTRACT", "Enforce schema validation with TFX / Great Expectations assertions"),
-        ("03_ERROR_ANALYSIS", "Slice-based performance auditing across critical cohorts"),
-        ("04_DEPLOYMENT", "Canary releases with automated shadow inference pipelines"),
-        ("05_MONITORING", "Real-time drift detection and automated rollback gates")
-    ]
-    return pd.DataFrame(steps, columns=["Pipeline Stage", "Operational Requirement"])
-
-checklist_df = generate_production_mlops_checklist()
-checklist_df`
-      }
-    ],
     content: `
 # ML Data Is A First Class Citizen
 
-In my research on Production Machine Learning, one fundamental truth stands out: **Data is the hardest part of ML, and the most critical piece to get right.**
+![Machine learning development lifecycle](/articles/ml-data/sketch.png)
 
-Data in an academic or research setting is vastly different from the production environment:
-- **In Academia**: You receive a standard, clean, well-curated dataset. You train a model, optimize hyper-parameters, and evaluate the benchmark metric. Once achieved, you are done.
-- **In Production**: ML code is just a tiny drop in the ocean. Surrounding it are serving infrastructure, schema validation, data collection pipelines, feature stores, and continuous monitoring systems.
+In classical academia, machine learning seems like a neat optimization problem: clean data, a model, a benchmark, and a report. In production, the reality is different. **Model code is only a small part of the system**. The critical burden sits in the data layer: ingestion, validation, drift monitoring, feature quality, and feedback loops.
+
+> The real challenge is not training a better model. The real challenge is keeping the data contract healthy over time.
+
+### The production reality
+
+Data in an academic or research setting is usually curated, static, and well-behaved. In production, the data pipeline is continuous and messy:
+
+- **Schema drift** changes the meaning of the same columns over time
+- **Data quality issues** create silent model degradation
+- **Covariate shift** changes the distribution seen at serving time
+- **Label delay** makes evaluation lag behind business reality
+
+That is why production ML systems are more about observability, monitoring, and feedback loops than pure predictive performance.
+
+![Production machine learning systems](/articles/ml-data/mlops.png)
 
 ---
 
-### The Reality of Production ML
+### Why model code is not enough
 
-The primary reason why production ML (MLOps) is vulnerable and mission-critical is that **real-world data is dynamic, noisy, and constantly shifting**.
+When you deploy a model, your work does not stop. It actually begins.
 
-When you deploy a model, your work does not stop; it actually begins:
-1. **Scoping**: Defining business objectives, resources, and evaluation metrics before training.
-2. **Data Pipeline**: Establishing baseline human-level performance, continuous ingestion, schema contracts, and feature engineering.
-3. **Modeling & Error Analysis**: Isolating slices where the model degrades rather than relying solely on aggregate test-set metrics.
-4. **Continuous Deployment & Monitoring**: Automatically detecting drift and triggering retraining routines.
+1. **Scoping**: define the business problem and the right success metric
+2. **Data pipeline**: ensure ingestion, feature engineering, and schema contracts are stable
+3. **Modeling and error analysis**: inspect slices, not just aggregate accuracy
+4. **Deployment and monitoring**: detect drift and trigger automated retraining
+
+A model can be algorithmically correct and still fail in production because the incoming data no longer matches the assumptions of training.
+
+![Machine learning production pipeline](/articles/ml-data/ml_pipelings.png)
 
 ---
 
-### Understanding Model Decay & Distribution Shifts
+### Distribution shift in practice
 
-Over time, models experience **model decay** caused by changes in statistical properties:
+The most common types of drift are:
 
-#### 1. Concept Drift
-Changes in the statistical relationship between features $x$ and ground truth labels $y$:
+![Data changes after deployment](/articles/ml-data/download.png)
+
+#### 1. Concept drift
+Changes in the relationship between features and target:
+
 $$P_{train}(y \\mid x) \\neq P_{serve}(y \\mid x)$$
 
-#### 2. Covariate Shift (Dataset Shift)
-Changes in the distribution of input variables between training and serving data:
-$$P_{train}(x) \\neq P_{serve}(x) \\quad \\text{while} \\quad P(y \\mid x) \\text{ remains unchanged}$$
+#### 2. Covariate shift
+Changes in the input distribution itself:
 
-#### 3. Schema Skew
-When incoming production data does not conform to the expected format, types, null-rates, or categorical domains defined during training.
+$$P_{train}(x) \\neq P_{serve}(x) \\quad \\text{while} \\quad P(y \\mid x) \\text{ remains stable}$$
+
+#### 3. Schema skew
+The feature columns arrive with new types, missing values, or unanticipated categories.
+
+This is why MLOps teams care deeply about data validation frameworks, lineage tracking, and continuous monitoring dashboards.
+
+![Data and model monitoring workflow](/articles/ml-data/ml_system.png)
+
+![Production data quality example](/articles/ml-data/skw.jpg)
+
+The original notebook also walks through a TensorFlow Extended production pipeline:
+
+![TensorFlow Extended pipeline](/articles/ml-data/tfx.png)
+
+![TFX pipeline components](/articles/ml-data/tfx1.png)
+
+![Additional TensorFlow Extended component view](/articles/ml-data/tfx2.png)
+
+---
+
+### Operational checklist
+
+A production pipeline should include:
+
+- data contract validation
+- baseline and business KPI tracking
+- drift detection thresholds
+- replayable training data
+- canary rollout and rollback gates
+- retraining triggered by evidence, not guesswork
+
+![Feedback and continuous learning loop](/articles/ml-data/flow.png)
+
+![Monitoring and retraining example](/articles/ml-data/runs.png)
+
+![Serving and feedback workflow](/articles/ml-data/sft.png)
+
+### Final thought
+
+The highest-leverage system in machine learning is not the model itself. It is the **data health system around it**. If the data pipeline is healthy, the model has a chance to remain useful. If not, the production system silently decays.
 `
   },
   {
     id: 'hierarchical-co-attention-vqa',
     title: 'Hierarchical Co-Attention for Visual Question Answering',
     date: 'Jun 25, 2021',
-    format: 'ipynb',
+    format: 'md',
     category: 'Computer Vision & NLP',
-    readTime: '24 cells · 11 min read',
+    readTime: '8 min read',
     tags: ['Computer Vision', 'NLP', 'Multimodal', 'Co-Attention', 'PyTorch'],
     excerpt: 'Jointly reasoning about visual attention ("where to look") and question attention ("which words to listen to") across word, phrase, and question hierarchies.',
-    notebookCells: [
-      {
-        type: 'markdown',
-        source: `# Hierarchical Co-Attention for Visual Question Answering\n\nIn Visual Question Answering (VQA), most literature traditionally focused on **Visual Attention**—determining *“where to look”* within an image. However, identifying **Question Attention**—knowing *“which words to listen to”*—is equally essential.`
-      },
-      {
-        type: 'code',
-        executionCount: 1,
-        source: `import torch
-import torch.nn as nn
-import torch.nn.functional as F
-
-class ParallelCoAttention(nn.Module):
-    """
-    Computes parallel co-attention maps between visual features V and textual questions Q.
-    Affinity matrix C = tanh(Q^T * W_b * V)
-    """
-    def __init__(self, d_dim=512, k_dim=256):
-        super().__init__()
-        self.W_b = nn.Parameter(torch.randn(d_dim, d_dim) * 0.02)
-        self.W_v = nn.Linear(d_dim, k_dim)
-        self.W_q = nn.Linear(d_dim, k_dim)
-        self.w_hv = nn.Linear(k_dim, 1)
-        self.w_hq = nn.Linear(k_dim, 1)
-
-    def forward(self, V, Q):
-        # V: [batch, v_len, d_dim]
-        # Q: [batch, q_len, d_dim]
-        # Affinity matrix
-        C = torch.tanh(torch.matmul(torch.matmul(Q, self.W_b), V.transpose(1, 2)))
-        
-        # Image attention
-        H_v = torch.tanh(self.W_v(V) + torch.matmul(C.transpose(1, 2), self.W_q(Q)))
-        a_v = F.softmax(self.w_hv(H_v), dim=1) # [batch, v_len, 1]
-        
-        # Question attention
-        H_q = torch.tanh(self.W_q(Q) + torch.matmul(C, self.W_v(V)))
-        a_q = F.softmax(self.w_hq(H_q), dim=1) # [batch, q_len, 1]
-        
-        v_hat = torch.sum(a_v * V, dim=1)
-        q_hat = torch.sum(a_q * Q, dim=1)
-        return v_hat, q_hat, a_v, a_q
-
-# Verification pass
-V = torch.randn(2, 196, 512) # ResNet conv grid
-Q = torch.randn(2, 14, 512)  # Question token embeddings
-model = ParallelCoAttention()
-v_hat, q_hat, a_v, a_q = model(V, Q)
-print(f"Attended Visual Vector Shape  : {v_hat.shape}")
-print(f"Attended Question Vector Shape: {q_hat.shape}")`,
-        output: `Attended Visual Vector Shape  : torch.Size([2, 512])
-Attended Question Vector Shape: torch.Size([2, 512])`
-      },
-      {
-        type: 'markdown',
-        source: `### Three Hierarchical Tiers\n1. **Word Level**: Embeds tokens via an embedding matrix $W_e$.\n2. **Phrase Level**: Applies 1D Convolutions with unigram, bigram, and trigram kernels.\n3. **Question Level**: Encodes entire sentence semantics using bidirectional recurrent units (LSTM/GRU).`
-      }
-    ],
     content: `
 # Hierarchical Co-Attention for Visual Question Answering
 
-In Visual Question Answering (VQA), models must consume both an image $I$ and a natural language question $Q$, then predict the correct answer.
+![Hierarchical question-image co-attention paper](/articles/vqa/h-co.png)
 
-Most classical literature focused purely on **Visual Attention**—asking *“where to look”* within the spatial feature grid of the image. However, this paper demonstrates that **Question Attention**—determining *“which words to listen to”*—is equally critical.
+In visual question answering, a model must understand both the image and the language query. The difficulty is that the useful signal is often distributed: the image contains many irrelevant regions, while the question contains words that matter more than others.
 
-Consider the question:  
-> *"How many horses can you see in this image?"*  
-The semantic core is captured by the first three words *"How many horses"*, while the remaining tokens provide minimal discriminative signal.
+This motivates **co-attention**: the system should learn not only *where to look* in the image, but also *which words to prioritize* in the question.
+
+![Equivalent questions about the same image](/articles/vqa/horses.png)
 
 ---
 
-### The Hierarchical Co-Attention Architecture
+### Why attention matters in VQA
 
-The model constructs joint attention across three distinct semantic granularities:
+A typical model may treat the question as a flat sequence and the image as a set of regional features. However, real reasoning is hierarchical:
 
-1. **Word Level**:
-   - Embeds each individual token via an embedding matrix $W_e$.
-   - Captures fine-grained lexical grounding.
+- words combine into phrase-level meaning
+- phrases compose into a question-level interpretation
+- image regions compete for relevance
+- the answer emerges from the joint alignment of both views
 
-2. **Phrase Level**:
-   - Applies 1D Convolutional filters across unigram, bigram, and trigram windows.
-   - Max-pooling over time extracts intermediate phrase semantics (e.g., *"brown horse"*, *"tall tree"*).
+The hierarchical co-attention model addresses exactly this by aligning visual and textual representations at multiple levels.
 
-3. **Question Level**:
-   - Uses recurrent networks (LSTM/GRU) to encode the global syntactic and contextual flow of the entire inquiry.
+![Hierarchical model aligning question words and image regions](/articles/vqa/co1.png)
+
+![Joint question and image attention maps](/articles/vqa/co2.png)
+
+---
+
+### Core idea
+
+The architecture computes attention over two modalities simultaneously:
+
+- visual attention decides which image regions matter most
+- question attention decides which words or phrases are most relevant
+
+This is particularly important in VQA because the same image may support multiple questions, and different query tokens may imply different regions of interest.
+
+If the model only attends to one modality, it misses important context. The joint representation allows the question to guide the image interpretation and the image to guide the text interpretation.
+
+---
+
+### Mathematical intuition
+
+Let $V$ be the visual feature matrix and $Q$ the question representation. The model builds an affinity matrix:
+
+$$C = \\tanh(Q W_b V^\\top)$$
+
+This matrix captures the compatibility between question features and visual features. From it, the model derives separate attention distributions over the image and the question.
+
+The result is a richer representation where both views inform the final fused feature vector used for answer decoding.
+
+![Parallel co-attention architecture](/articles/vqa/co3.png)
+
+---
+
+### Why hierarchical attention is powerful
+
+A flat attention model may focus on the image as a whole and miss finer details. Hierarchical attention allows the reasoning process to operate at multiple scales:
+
+- word-level alignment
+- phrase-level fusion
+- question-level summarization
+- final image-text reasoning
+
+This makes it especially effective for compositional questions such as "What is the person holding?" or "How many objects are visible to the left of the table?"
+
+![Alternating co-attention architecture](/articles/vqa/co4.png)
+
+---
+
+### Practical takeaway
+
+For multimodal systems, the key is not simply combining features. It is learning *where* the model should focus in the visual stream and *what* it should emphasize in the textual stream.
+
+That is the core insight behind hierarchical co-attention: it allows the model to reason jointly across vision and language instead of treating them as independent inputs.
+
+### Closing note
+
+Modern VQA systems have become far more sophisticated, but the core principle remains the same: the model must learn to align the right visual cues with the right textual cues. That alignment is exactly what co-attention aims to optimize.
 `
   },
   {
     id: 'why-data-definition-is-hard',
     title: 'Why Data Definition Is Hard in Real-World ML',
     date: 'Jul 02, 2021',
-    format: 'ipynb',
+    format: 'md',
     category: 'Data Quality & Labeling',
-    readTime: '15 cells · 6 min read',
+    readTime: '6 min read',
     tags: ['Data Quality', 'Label Inconsistency', 'Bayes Error', 'Human-in-the-Loop'],
     excerpt: 'The hidden trap of label inconsistency in unstructured datasets, resolving annotator disagreement, and establishing Human Level Performance baselines.',
-    notebookCells: [
-      {
-        type: 'markdown',
-        source: `# Why Data Definition Is Hard\n\nWhen transitioning from textbook datasets to proprietary enterprise data, the primary roadblock is rarely the model architecture—it is **defining ground truth labels consistently across annotators**.`
-      },
-      {
-        type: 'code',
-        executionCount: 1,
-        source: `def compute_inter_annotator_agreement(annotator_a, annotator_b):
-    """
-    Computes Cohen's Kappa score to measure agreement between two labelers.
-    Kappa = (P_observed - P_expected) / (1 - P_expected)
-    """
-    agreement = [a == b for a, b in zip(annotator_a, annotator_b)]
-    p_o = sum(agreement) / len(agreement)
-    
-    # Class marginals
-    p_a1 = sum(annotator_a) / len(annotator_a)
-    p_b1 = sum(annotator_b) / len(annotator_b)
-    p_e = (p_a1 * p_b1) + ((1 - p_a1) * (1 - p_b1))
-    
-    kappa = (p_o - p_e) / (1 - p_e) if (1 - p_e) != 0 else 1.0
-    return round(p_o, 4), round(kappa, 4)
-
-# 100 sample documents labeled by 2 independent domain specialists
-np.random.seed(101)
-lab_a = np.random.choice([0, 1], size=100, p=[0.7, 0.3])
-lab_b = lab_a.copy()
-# Inject 15% edge-case ambiguity
-noise_indices = np.random.choice(100, size=15, replace=False)
-for idx in noise_indices:
-    lab_b[idx] = 1 - lab_b[idx]
-
-observed_acc, kappa = compute_inter_annotator_agreement(lab_a, lab_b)
-print(f"Observed Raw Agreement Rate : {observed_acc * 100:.1f}%")
-print(f"Cohen's Kappa Reliability   : {kappa} ({'Substantial' if kappa > 0.6 else 'Moderate'})")`,
-        output: `Observed Raw Agreement Rate : 85.0%
-Cohen's Kappa Reliability   : 0.6421 (Substantial)`
-      }
-    ],
     content: `
-# Why Data Definition Is Hard
+# Why Data Definition Is Hard in Real-World ML
 
-Here is a common scenario: You initiate a high-priority data science initiative. Instead of downloading a synthetic academic dataset, your team sets out to collect proprietary real-world data.
+![Major types of data problems](/articles/vqa/3.png)
 
-Quickly, you encounter the hardest bottleneck in applied machine learning: **Defining clean, consistent labels across non-trivial edge cases.**
+A high-priority ML initiative rarely fails because the model architecture is weak. It fails because the ground truth is poorly defined.
+
+In textbook settings, labels are usually clean, consistent, and easy to reason about. In real business applications, especially with unstructured or semi-structured data, annotation quality becomes the first real bottleneck.
+
+![Notebook example introducing the data-definition problem](/articles/vqa/2.png)
 
 ---
 
-### The Label Inconsistency Dilemma
+### The label inconsistency problem
 
-While humans excel at perceiving unstructured data, human annotators rarely agree unconditionally on boundary cases:
-- In medical imaging, different radiologists disagree on subtle lesion boundaries.
-- In sentiment classification, sarcasm and cultural nuances yield conflicting labels.
-- In bounding-box annotation, different labelers include or exclude occluded shadows.
+When data comes from human judgment, boundary cases produce disagreement:
 
-If two identical images receive conflicting labels ($y=1$ vs $y=0$), the model is effectively forced to learn contradictory gradients, establishing an artificial noise floor.
+- radiologists disagree on subtle medical findings
+- annotators disagree on nuanced sentiment and sarcasm
+- reviewers classify edge events differently across teams
+
+This means the target itself is noisy before the model even trains.
+
+If two annotators label the same sample differently, the model is not learning a single truth; it is learning a mixture of contradictory supervision signals.
+
+![Why label consistency matters](/articles/vqa/lable_inonsistency1.png)
+
+---
+
+### Why this is harder than it looks
+
+The challenge is not just getting labels. It is defining what the label means.
+
+A dataset may look clean on the surface but fail in practice because:
+
+- annotation rubrics are underspecified
+- edge cases are not documented
+- labelers interpret the same example differently
+- class definitions shift over time
+
+This creates a hidden noise floor that no model architecture can fully fix.
+
+![How inconsistent labels distort the learned relationship](/articles/vqa/lable_inonsistency.png)
+
+---
+
+### The statistical impact
+
+If the label is inconsistent, then even a strong model cannot learn a stable signal. In practical terms, the system may have:
+
+- reduced precision on ambiguous examples
+- unstable validation trends
+- inconsistent human-level performance estimates
+- poor transfer from pilot to production
+
+This is why data definition is often the first real engineering task in ML work.
+
+![Human-level performance and evaluation](/articles/vqa/hlp1.png)
+
+![Another human-level performance example](/articles/vqa/4.png)
+
+---
+
+### What good teams do
+
+The best data teams do not just collect examples. They define:
+
+- annotation rules
+- edge-case policies
+- disagreement review workflows
+- inter-annotator agreement checks
+- human-level performance baselines
+
+They treat labels as a product, not as an afterthought.
+
+> If your data definition is vague, your ML system will be brittle regardless of the model you choose.
 `
   },
   {
     id: 'why-low-average-error-not-enough',
     title: "Why Low Average Error Isn't Good Enough",
     date: 'Aug 20, 2021',
-    format: 'ipynb',
+    format: 'md',
     category: 'Model Evaluation',
-    readTime: '12 cells · 7 min read',
+    readTime: '7 min read',
     tags: ['Error Analysis', 'Data Slicing', 'Production Metrics', 'Safety & Fairness'],
     excerpt: 'A 99.2% aggregate test accuracy can disguise complete failure on critical query cohorts, catastrophic edge cases, and high-value customer segments.',
-    notebookCells: [
-      {
-        type: 'markdown',
-        source: `# Why Low Average Error Isn't Good Enough\n\nA machine learning system may have a low aggregate test error of 1%, but if its performance on a small subset of disproportionately critical examples fails, the model is completely unacceptable for production deployment.`
-      },
-      {
-        type: 'code',
-        executionCount: 1,
-        source: `def slice_based_evaluation(total_samples=10000):
-    # 98% of queries are generic web queries
-    generic_correct = int(0.98 * total_samples * 0.995)
-    generic_total = int(0.98 * total_samples)
-    
-    # 2% of queries are safety-critical queries
-    safety_correct = int(0.02 * total_samples * 0.60) # Catastrophic failure on safety slice!
-    safety_total = int(0.02 * total_samples)
-    
-    overall_accuracy = (generic_correct + safety_correct) / total_samples
-    safety_accuracy = safety_correct / safety_total
-    
-    print(f"Overall Aggregate Accuracy : {overall_accuracy * 100:.2f}% (Looks Outstanding!)")
-    print(f"Safety-Critical Slice Acc  : {safety_accuracy * 100:.2f}% (CATASTROPHIC FAILURE)")
-
-slice_based_evaluation()`,
-        output: `Overall Aggregate Accuracy : 98.71% (Looks Outstanding!)
-Safety-Critical Slice Acc  : 60.00% (CATASTROPHIC FAILURE)`
-      }
-    ],
     content: `
 # Why Low Average Error Isn't Good Enough
 
-A machine learning system may achieve an outstanding 99.2% accuracy on a held-out test set. Yet, in production, it can face immediate user rejection.
+![Performance on disproportionately important examples](/articles/low-average/ai.png)
 
-How is this possible? Because **average test set error treats all samples as equally important, whereas business value and failure penalties in production are highly asymmetric.**
+A model can have a remarkably low average error and still be unacceptable for production.
+
+This is the core lesson behind slice-based evaluation: **aggregate metrics can hide catastrophic failures on important subgroups**.
 
 ---
 
-### The Search Engine Analogy
+### The trap of average performance
 
-Consider a web search engine ranking model:
-- **Informational Queries** (e.g., *"apple pie recipe"*, *"weather in Seattle"*):
-  These represent $95\%$ of search volume. A minor ranking error here causes mild user inconvenience.
-- **Navigational / Transactional / Critical Queries** (e.g., *"emergency suicide hotline"*, *"bank account login"*, *"COVID symptom guidelines"*):
-  These represent only $1-2\%$ of total volume, but a failure on this slice can be catastrophic or fatal.
+Suppose a system has 98.7% overall accuracy. On the surface, this looks excellent. But if the model fails on a small but critical subset of examples, then the apparently good number is misleading.
+
+This is especially dangerous in systems where some failure modes are dramatically more costly than others.
+
+![Deployment example from the original notebook](/articles/low-average/deploy.png)
+
+---
+
+### Why slices matter
+
+In many real-world systems, the data is heavily imbalanced:
+
+- the majority of calls are routine
+- a small fraction are safety-critical or business-critical
+- the minority group drives the most severe consequences
+
+If the model performs poorly there, the average metric becomes irrelevant.
+
+A product can look highly accurate while still being operationally unsafe.
+
+---
+
+### Search engine example
+
+Imagine a ranking system where 95% of queries are informational and only 2% are safety-critical or high-risk.
+
+The model may do extremely well on the majority cohort while failing badly on the small but crucial subset.
+
+That creates a dangerous illusion:
+
+- aggregate accuracy looks great
+- true product risk is hidden
+- user trust erodes in the most important cases
+
+---
+
+### What production teams need
+
+A better evaluation system includes:
+
+- cohort-based metrics
+- error slices by user segment or query class
+- calibration checks
+- risk-aware thresholds
+- cost-sensitive decision evaluation
+
+The goal is not only to minimize mean error, but to make sure the system remains reliable where it matters most.
+
+> A low average error is useful, but it is not sufficient. In production, the dangerous errors are often the rare ones.
 `
   },
   {

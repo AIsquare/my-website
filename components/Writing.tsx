@@ -1,26 +1,22 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { 
   BookOpen, 
   Search, 
-  FileCode2, 
   FileText, 
   FileSpreadsheet, 
   ArrowRight,
-  Eye,
-  Download
+  Eye
 } from 'lucide-react';
+import Link from 'next/link';
 import { ARTICLES_DATA, Article } from '@/lib/articlesData';
-import ArticleReaderModal from './ArticleReaderModal';
 
-type FormatFilter = 'all' | 'ipynb' | 'pdf' | 'docx' | 'md';
+type FormatFilter = 'all' | 'pdf' | 'docx' | 'md';
 
 export default function Writing() {
   const [selectedFormat, setSelectedFormat] = useState<FormatFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeArticle, setActiveArticle] = useState<Article | null>(null);
 
   const filteredArticles = useMemo(() => {
     return ARTICLES_DATA.filter((item) => {
@@ -39,7 +35,6 @@ export default function Writing() {
   const counts = useMemo(() => {
     return {
       all: ARTICLES_DATA.length,
-      ipynb: ARTICLES_DATA.filter((a) => a.format === 'ipynb').length,
       pdf: ARTICLES_DATA.filter((a) => a.format === 'pdf').length,
       docx: ARTICLES_DATA.filter((a) => a.format === 'docx').length,
       md: ARTICLES_DATA.filter((a) => a.format === 'md').length,
@@ -48,12 +43,6 @@ export default function Writing() {
 
   const getFormatBadge = (format: Article['format']) => {
     switch (format) {
-      case 'ipynb':
-        return {
-          icon: <FileCode2 size={13} className="text-amber-600" />,
-          style: 'bg-amber-50 text-amber-800 border-amber-200/90 font-bold',
-          label: 'Jupyter .ipynb'
-        };
       case 'pdf':
         return {
           icon: <FileText size={13} className="text-rose-600" />,
@@ -82,13 +71,13 @@ export default function Writing() {
         <div className="pb-2.5 border-b border-slate-200/80">
           <div className="inline-flex items-center gap-1.5 text-xs font-mono text-indigo-600 font-semibold mb-0.5">
             <span className="text-slate-400 font-normal">{'//'} 01.</span>
-            <span>PUBLICATIONS & NOTEBOOKS</span>
+            <span>PUBLICATIONS & ARTICLES</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold font-mono text-slate-900 tracking-tight">
             Articles & Technical Writings
           </h2>
           <p className="text-xs text-slate-500 font-mono mt-0.5">
-            Self-contained machine learning notebooks, research whitepapers, and production architecture specifications.
+            Research articles, technical whitepapers, and production architecture specifications.
           </p>
         </div>
 
@@ -105,17 +94,6 @@ export default function Writing() {
               }`}
             >
               All ({counts.all})
-            </button>
-            <button
-              onClick={() => setSelectedFormat('ipynb')}
-              className={`px-2.5 py-1 rounded text-[11px] transition-colors whitespace-nowrap flex items-center gap-1.5 ${
-                selectedFormat === 'ipynb'
-                  ? 'bg-amber-600 text-white font-semibold shadow-xs'
-                  : 'bg-amber-50 text-amber-800 border border-amber-200/60 hover:bg-amber-100'
-              }`}
-            >
-              <FileCode2 size={12} />
-              <span>Jupyter ({counts.ipynb})</span>
             </button>
             <button
               onClick={() => setSelectedFormat('pdf')}
@@ -199,11 +177,13 @@ export default function Writing() {
                     </div>
 
                     {/* Title */}
-                    <h3
-                      onClick={() => setActiveArticle(article)}
-                      className="text-sm sm:text-base font-bold font-mono text-slate-900 group-hover:text-indigo-600 cursor-pointer transition-colors leading-snug flex items-center gap-1.5"
-                    >
-                      <span>{article.title}</span>
+                    <h3 className="text-sm sm:text-base font-bold font-mono text-slate-900 group-hover:text-indigo-600 transition-colors leading-snug flex items-center gap-1.5">
+                      <Link
+                        href={`/articles/${article.id}`}
+                        className="hover:text-indigo-600 focus-visible:outline-2 focus-visible:outline-indigo-600"
+                      >
+                        <span>{article.title}</span>
+                      </Link>
                       <ArrowRight size={13} className="opacity-0 group-hover:opacity-100 transition-opacity text-indigo-600 shrink-0" />
                     </h3>
 
@@ -228,27 +208,13 @@ export default function Writing() {
 
                   {/* Actions Column */}
                   <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-1.5 pt-1 md:pt-0 shrink-0 font-mono text-xs">
-                    <button
-                      onClick={() => setActiveArticle(article)}
+                    <Link
+                      href={`/articles/${article.id}`}
                       className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-900 hover:bg-indigo-700 text-white rounded text-[11px] font-medium transition-colors shadow-xs"
                     >
-                      {article.format === 'pdf' ? (
-                        <>
-                          <FileText size={12} className="text-rose-300" />
-                          <span>Open PDF</span>
-                        </>
-                      ) : article.format === 'ipynb' ? (
-                        <>
-                          <FileCode2 size={12} className="text-amber-300" />
-                          <span>Open Notebook</span>
-                        </>
-                      ) : (
-                        <>
-                          <Eye size={12} className="text-indigo-300" />
-                          <span>Read In-App</span>
-                        </>
-                      )}
-                    </button>
+                      <Eye size={12} className="text-indigo-300" />
+                      <span>Read Article</span>
+                    </Link>
                   </div>
                 </div>
               );
@@ -261,12 +227,6 @@ export default function Writing() {
         </div>
       </div>
 
-      {/* Dedicated In-App Reader Modal (Jupyter Notebook & PDF Viewer) */}
-      <ArticleReaderModal 
-        key={activeArticle?.id || 'none'} 
-        article={activeArticle} 
-        onClose={() => setActiveArticle(null)} 
-      />
     </section>
   );
 }
