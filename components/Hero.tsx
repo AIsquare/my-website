@@ -50,7 +50,7 @@ export default function Hero() {
             <div>
               <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-indigo-50 border border-indigo-200/60 text-indigo-700 text-[10px] font-mono rounded mb-1.5">
                 <Terminal size={11} />
-                <span>ml_systems_engineer.py</span>
+                <span>stochastic_modelling.py</span>
               </div>
               
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-slate-900 font-mono">
@@ -64,8 +64,7 @@ export default function Hero() {
 
             {/* Tight Bio */}
             <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-xl">
-              Data Scientist specializing in Machine Learning, Deep Learning, MLOps, and Natural Language Processing. 
-              Proven track record engineering high-throughput document intelligence systems (Thomson Reuters), agentic workflow automation (LangGraph, FastAPI), and high-lift customer propensity models (Landmark Group).
+              Data Scientist/AI Engineer with 4+ years of experience building and deploying intelligent solutions across machine learning, generative AI, natural language processing, and data science. Experienced in solving complex business problems through applied AI, automation, predictive modeling, and document intelligence, with a strong focus on turning research and experimentation into practical, scalable systems.
             </p>
 
             {/* Academic Credential (M.Tech Data Science only) */}
