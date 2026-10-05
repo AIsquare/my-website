@@ -12,7 +12,50 @@ export interface Article {
   content: string;
 }
 
+
 export const ARTICLES_DATA: Article[] = [
+  {
+    id: 'rlef-grounding-code-llms',
+    title: 'RLEF: Grounding Code LLMs in Execution Feedback with Reinforcement Learning',
+    date: 'Oct 06, 2026',
+    format: 'pdf',
+    category: 'LLM Agents & Reinforcement Learning',
+    readTime: '19 pages · Paper Analysis',
+    tags: [
+      'LLMs',
+      'Code Generation',
+      'Reinforcement Learning',
+      'PPO',
+      'Execution Feedback',
+      'AI Agents'
+    ],
+    excerpt:
+      'A detailed analysis of RLEF and how reinforcement learning teaches code LLMs to condition future generations on execution feedback rather than simply generating another independent answer.',
+    pdfUrl: '/documents/rlef.pdf',
+    content: ''
+  },
+
+  {
+    id: 'kv-cache',
+    title: 'KV Cache: Understanding Prefill, Decode, and Attention Caching',
+    date: 'Oct 06, 2026',
+    format: 'pdf',
+    category: 'LLM Systems & Inference',
+    readTime: '7 pages · Technical Note',
+    tags: [
+      'LLMs',
+      'Transformers',
+      'KV Cache',
+      'Attention',
+      'Inference',
+      'LLM Serving'
+    ],
+    excerpt:
+      'A technical walkthrough of KV caching, explaining how K and V are stored across decoder blocks, why Q is computed only for the current token, and how prefill and decode differ.',
+    pdfUrl: '/documents/kv-cache.pdf',
+    content: ''
+  },
+  
   {
     id: 'ml-data-first-class-citizen',
     title: 'ML Data Is A First Class Citizen in Production',

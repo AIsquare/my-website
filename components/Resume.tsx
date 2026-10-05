@@ -142,12 +142,6 @@ const skills = [
 export default function Resume() {
   const [copiedEmail, setCopiedEmail] = useState(false);
 
-  const handleDownloadPdf = () => {
-    if (typeof window !== 'undefined') {
-      window.print();
-    }
-  };
-
   const copyEmail = () => {
     navigator.clipboard.writeText('aamiriqbal@outlook.in');
     setCopiedEmail(true);
@@ -171,14 +165,15 @@ export default function Resume() {
 
           {/* Quick CV actions - UPDATED: "Download PDF" instead of "Print" */}
           <div className="flex items-center gap-2 font-mono text-xs print:hidden">
-            <button
-              onClick={handleDownloadPdf}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded transition-colors text-xs shadow-xs"
-              title="Download or Save Resume PDF"
-            >
-              <Download size={13} />
-              <span>Download PDF</span>
-            </button>
+                      <a
+            href="/documents/resume.pdf"
+            download="Aamir-Iqbal-Resume.pdf"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded transition-colors text-xs shadow-xs"
+            title="Download Resume PDF"
+          >
+            <Download size={13} />
+            <span>Download PDF</span>
+          </a>
             <button
               onClick={copyEmail}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded transition-colors text-xs shadow-xs"
