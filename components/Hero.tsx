@@ -223,7 +223,7 @@ export default function Hero() {
               </div>
               <div className="min-w-0 flex-1 font-mono">
                 <div className="text-xs font-bold text-slate-900 truncate">MD AAMIR IQBAL</div>
-                <div className="text-[10px] text-slate-500 truncate">Data Science & ML Engineer</div>
+                <div className="text-[10px] text-slate-500 truncate">Data Science/AI Engineer</div>
                 <div className="flex items-center gap-2 text-[9px] text-slate-400 mt-0.5">
                   <span>Remote / India</span>
                   <span>•</span>
