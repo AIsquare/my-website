@@ -7,13 +7,34 @@ export interface Article {
   readTime: string;
   excerpt: string;
   tags: string[];
+
   pdfUrl?: string;
   pdfPages?: string[];
-  content: string;
+
+  content?: string;
+  contentFile?: string;
 }
 
-
 export const ARTICLES_DATA: Article[] = [
+  {
+  id: 'vllm-pagedattention-hidden-memory-problem',
+  title: 'vLLM and PagedAttention: The Hidden Memory Problem Behind LLM Inference',
+  date: 'Oct 06, 2026',
+  format: 'md',
+  category: 'LLM Systems & Inference',
+  readTime: '10 min read',
+  tags: [
+    'vLLM',
+    'PagedAttention',
+    'LLM Inference',
+    'KV Cache',
+    'GPU Memory',
+    'Serving'
+  ],
+  excerpt:
+    'A practical breakdown of the hidden memory problem in LLM inference, from KV-cache growth and fragmentation to how PagedAttention improves GPU memory utilization.',
+},
+  
   {
     id: 'rlef-grounding-code-llms',
     title: 'RLEF: Grounding Code LLMs in Execution Feedback with Reinforcement Learning',

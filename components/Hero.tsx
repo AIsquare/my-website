@@ -203,8 +203,8 @@ export default function Hero() {
           {/* Right Column: Profile Micro-Card & Galton Board (5 cols) */}
           <div className="lg:col-span-5 flex flex-col items-center sm:items-end gap-2.5">
             {/* Compact Profile Micro-Card */}
-            <div className="w-full max-w-[300px] bg-white border border-slate-200/90 rounded p-2 flex items-center gap-2.5 shadow-xs">
-              <div className="relative w-11 h-11 shrink-0 rounded bg-slate-100 border border-slate-200 overflow-hidden">
+            <div className="w-full max-w-[320px] bg-white border border-slate-200/90 rounded-lg p-2.5 flex items-center gap-3 shadow-xs">
+              <div className="relative w-14 h-14 shrink-0 rounded-md bg-slate-100 border border-slate-200 overflow-hidden">
                 {!imgError ? (
                   <Image
                     src="/profile.jpg"

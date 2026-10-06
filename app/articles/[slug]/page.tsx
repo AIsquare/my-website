@@ -1,23 +1,27 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import type {Metadata} from 'next';
+import type { Metadata } from 'next';
 import ReactMarkdown from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
 import remarkMath from 'remark-math';
 import { ArrowLeft, CalendarDays, Clock } from 'lucide-react';
 import { ARTICLES_DATA } from '@/lib/articlesData';
+import fs from 'fs';
+import path from 'path';
 
 interface ArticlePageProps {
-  params: Promise<{slug: string}>;
+  params: Promise<{ slug: string }>;
 }
 
 export function generateStaticParams() {
-  return ARTICLES_DATA.map(({id}) => ({slug: id}));
+  return ARTICLES_DATA.map(({ id }) => ({ slug: id }));
 }
 
-export async function generateMetadata({params}: ArticlePageProps): Promise<Metadata> {
-  const {slug} = await params;
-  const article = ARTICLES_DATA.find(({id}) => id === slug);
+export async function generateMetadata({
+  params,
+}: ArticlePageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const article = ARTICLES_DATA.find(({ id }) => id === slug);
 
   if (!article) return {};
 
@@ -27,13 +31,44 @@ export async function generateMetadata({params}: ArticlePageProps): Promise<Meta
   };
 }
 
-export default async function ArticlePage({params}: ArticlePageProps) {
-  const {slug} = await params;
-  const article = ARTICLES_DATA.find(({id}) => id === slug);
+export default async function ArticlePage({
+  params,
+}: ArticlePageProps) {
+  const { slug } = await params;
+  const article = ARTICLES_DATA.find(({ id }) => id === slug);
 
   if (!article) notFound();
 
-  const content = article.content.replace(/^\s*#\s+.+\n+/, '');
+  let content = article.content ?? '';
+
+  /*
+   * Markdown articles can live in:
+   * posts/<article-id>.md
+   *
+   * If contentFile is provided, use it.
+   * Otherwise default to:
+   * posts/<article-id>.md
+   */
+  if (article.format === 'md') {
+    const contentFile =
+      article.contentFile ?? `${article.id}.md`;
+
+    const filePath = path.join(
+      process.cwd(),
+      'posts',
+      contentFile
+    );
+
+    if (fs.existsSync(filePath)) {
+      content = fs.readFileSync(filePath, 'utf8');
+    }
+  }
+
+  /*
+   * Remove the first Markdown H1 because the page already
+   * renders the article title in the header.
+   */
+  content = content.replace(/^\s*#\s+.+\n+/, '');
 
   return (
     <main className="min-h-screen bg-[#faf9f6] text-slate-900">
@@ -46,7 +81,11 @@ export default async function ArticlePage({params}: ArticlePageProps) {
             <ArrowLeft size={14} />
             All writing
           </Link>
-          <Link href="/" className="font-semibold text-slate-900 hover:text-indigo-700">
+
+          <Link
+            href="/"
+            className="font-semibold text-slate-900 hover:text-indigo-700"
+          >
             MD AAMIR IQBAL
           </Link>
         </nav>
@@ -56,17 +95,21 @@ export default async function ArticlePage({params}: ArticlePageProps) {
             <p className="mb-4 font-mono text-xs font-semibold uppercase tracking-[0.16em] text-indigo-700">
               {article.category}
             </p>
+
             <h1 className="font-serif text-4xl font-bold leading-tight tracking-tight text-slate-950 sm:text-5xl">
               {article.title}
             </h1>
+
             <p className="mt-5 max-w-2xl font-serif text-lg leading-relaxed text-slate-600">
               {article.excerpt}
             </p>
+
             <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 border-y border-slate-200 py-3 font-mono text-xs text-slate-500">
               <span className="inline-flex items-center gap-1.5">
                 <CalendarDays size={13} />
                 {article.date}
               </span>
+
               <span className="inline-flex items-center gap-1.5">
                 <Clock size={13} />
                 {article.readTime}
@@ -85,6 +128,7 @@ export default async function ArticlePage({params}: ArticlePageProps) {
                   Download the original PDF
                 </a>
               </p>
+
               <iframe
                 src={article.pdfUrl}
                 title={article.title}
@@ -97,13 +141,52 @@ export default async function ArticlePage({params}: ArticlePageProps) {
                 remarkPlugins={[remarkMath]}
                 rehypePlugins={[rehypeKatex]}
                 components={{
-                  img: ({src, alt}) => (
-                    // Markdown supplies arbitrary image dimensions, so preserve their intrinsic aspect ratios.
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={src} alt={alt ?? ''} loading="lazy" />
-                  ),
-                  a: ({href, children}) => (
-                    <a href={href} target="_blank" rel="noreferrer">
+                  img: ({ src, alt }) => {
+                    /*
+                     * Absolute paths:
+                     *   /images/foo.png
+                     *
+                     * External URLs:
+                     *   https://...
+                     *
+                     * are kept unchanged.
+                     *
+                     * Relative paths:
+                     *   ./image.png
+                     *   image.png
+                     *
+                     * are automatically mapped to:
+                     *   /articles/<article-id>/image.png
+                     */
+
+                    const imageSrc =
+                      !src
+                        ? ''
+                        : src.startsWith('/') ||
+                          src.startsWith('http://') ||
+                          src.startsWith('https://')
+                        ? src
+                        : `/articles/${article.id}/${src.replace(
+                            /^\.?\//,
+                            ''
+                          )}`;
+
+                    return (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={imageSrc}
+                        alt={alt ?? ''}
+                        loading="lazy"
+                      />
+                    );
+                  },
+
+                  a: ({ href, children }) => (
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
                       {children}
                     </a>
                   ),
@@ -125,6 +208,7 @@ export default async function ArticlePage({params}: ArticlePageProps) {
                 </span>
               ))}
             </div>
+
             <Link
               href="/#writing"
               className="mt-8 inline-flex items-center gap-2 font-mono text-xs font-semibold text-indigo-700 hover:text-indigo-900"
