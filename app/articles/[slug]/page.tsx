@@ -160,8 +160,8 @@ export default async function ArticlePage({
                      */
 
                     const imageSrc =
-                      !src
-                        ? ''
+                    typeof src !== 'string'
+                       ? ''
                         : src.startsWith('/') ||
                           src.startsWith('http://') ||
                           src.startsWith('https://')
