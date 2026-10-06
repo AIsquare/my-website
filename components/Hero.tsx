@@ -58,7 +58,7 @@ export default function Hero() {
               </h1>
 
               <p className="text-xs font-mono text-indigo-600 mt-1 font-semibold tracking-wide">
-                DATA SCIENTIST & ML ENGINEER // 4+ YEARS EXPERIENCE
+                DATA SCIENTIST/AI ENGINEER
               </p>
             </div>
 
