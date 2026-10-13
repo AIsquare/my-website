@@ -61,7 +61,7 @@ export default function Navbar() {
           {/* Social icons */}
           <div className="flex items-center gap-2 text-slate-500">
             <a
-              href="https://github.com/aamirai"
+              href="https://github.com/AIsquareai"
               target="_blank"
               rel="noopener noreferrer"
               className="p-1 hover:text-slate-900 transition-colors"
@@ -120,7 +120,7 @@ export default function Navbar() {
             ))}
             <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-3 text-slate-500">
-                <a href="https://github.com/aamirai" target="_blank" rel="noopener noreferrer">
+                <a href="https://github.com/AIsquareai" target="_blank" rel="noopener noreferrer">
                   <Github size={16} />
                 </a>
                 <a href="https://linkedin.com/in/amriqbal/" target="_blank" rel="noopener noreferrer">

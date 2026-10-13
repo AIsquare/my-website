@@ -78,7 +78,7 @@ export default function Contact() {
             </a>
 
             <a
-              href="https://github.com/aamirai"
+              href="https://github.com/AIsquareai"
               target="_blank"
               rel="noopener noreferrer"
               className="p-2.5 bg-slate-50 hover:bg-indigo-50/50 border border-slate-200/70 rounded transition-colors flex items-center justify-between group"
