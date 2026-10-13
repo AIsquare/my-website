@@ -28,7 +28,7 @@ export default function PortfolioPage() {
 
           <div className="flex items-center gap-4 text-slate-500">
             <a
-              href="https://github.com/AIsquareai/square"
+              href="https://github.com/AIsquare"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-slate-200 transition-colors"
@@ -37,7 +37,7 @@ export default function PortfolioPage() {
             </a>
             <span>•</span>
             <a
-              href="https://github.com/AIsquareai"
+              href="https://github.com/AIsquare"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-slate-200 transition-colors"

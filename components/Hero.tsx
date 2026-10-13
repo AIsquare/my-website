@@ -102,7 +102,7 @@ export default function Hero() {
 
                 {/* HIGHLIGHTED GitHub Button */}
                 <a
-                  href="https://github.com/AIsquareai"
+                  href="https://github.com/AIsquare"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-mono font-medium rounded transition-colors shadow-xs"
